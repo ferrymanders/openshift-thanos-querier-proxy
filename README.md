@@ -1,0 +1,1 @@
+# openshift-thanos-querier-proxy
