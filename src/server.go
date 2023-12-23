@@ -1,14 +1,14 @@
 package main
 
 import (
-    "fmt"
-    "github.com/tidwall/gjson"
-    "io"
-    "log"
-    "net/http"
-    "os"
-    "slices"
-    "strings"	
+  "fmt"
+  "github.com/tidwall/gjson"
+  "io"
+  "log"
+  "net/http"
+  "os"
+  "slices"
+  "strings"	
 )
 
 func doQuery(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func doQuery(w http.ResponseWriter, r *http.Request) {
 
 	// Send outgoing request
 	client := &http.Client{}
-    resp, err := client.Do(req)
+	resp, err := client.Do(req)
 
 	if err != nil {
 		fmt.Println(err)
@@ -91,11 +91,12 @@ func doQuery(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// Create new webserver
-    mux := http.NewServeMux()
+  mux := http.NewServeMux()
+
 	// Define routes
-    mux.HandleFunc("/query", doQuery)
+  mux.HandleFunc("/query", doQuery)
 
 	// Start listening
-    err := http.ListenAndServe(":4000", mux)
-    log.Fatal(err)
+  err := http.ListenAndServe(":4000", mux)
+  log.Fatal(err)
 }
