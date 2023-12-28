@@ -13,7 +13,7 @@ import (
 
 func doQuery(w http.ResponseWriter, r *http.Request) {
   // Fetch querier url from env
-  thanosQuerierUrl = os.Getenv("THANOS_QUERIER_URL")
+  thanosQuerierUrl := os.Getenv("THANOS_QUERIER_URL")
 
   // Get Authorization token to passthrough
   incomingToken := strings.Split(r.Header.Get("Authorization"), " ")
