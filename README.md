@@ -17,5 +17,5 @@ curl -G \
 ```
 docker run -d \
     -e THANOS_QUERIER_URL="https://<THANOS_QUERIER_HOST>/api/v1/query" \
-    ferrymanders/thanos-querier-proxy:latest
+    fmanders/thanos-querier-proxy:latest
 ```
