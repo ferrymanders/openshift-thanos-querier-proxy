@@ -9,10 +9,14 @@ import (
   "net/http"
   "os"
   "slices"
-  "strings"	
+  "strings"
+  "time"
 )
 
 func doQuery(w http.ResponseWriter, r *http.Request) {
+  // Get time
+  currentTime := time.Now()
+
   // Fetch querier url from env
   thanosQuerierUrl := os.Getenv("THANOS_QUERIER_URL")
 
@@ -25,11 +29,6 @@ func doQuery(w http.ResponseWriter, r *http.Request) {
   // Get Query data to passthrough
   query := r.URL.Query().Get("query")
   namespace := r.URL.Query().Get("namespace")
-
-  // Debugging
-  fmt.Println("# New request ############################")
-  fmt.Println("GET params were:", r.URL.Query())
-  fmt.Println("Headers were:", r.Header)
 
   // Disable TLS Certificate Verify
   if os.Getenv("THANOS_QUERIER_INSECURE") == "true" {
@@ -56,6 +55,7 @@ func doQuery(w http.ResponseWriter, r *http.Request) {
   }
   defer resp.Body.Close()
 
+
   // Pull json from response body
   json, err := io.ReadAll(resp.Body)
   if err != nil {
@@ -68,12 +68,14 @@ func doQuery(w http.ResponseWriter, r *http.Request) {
   // Define which result keys to skip in output
   skipTags := []string{"__name__", "job", "prometheus"}
 
+  // Object counter for logs
+  objectCounter := 0
+
   // Iterate through json metric objects
   result.ForEach(func(key, value gjson.Result) bool {
     jsonData := gjson.Parse(value.String())
 
     objectData := jsonData.Get("metric")
-    metricTime := jsonData.Get("value.0")
     metricValue := jsonData.Get("value.1")
 
     // Grab metric name
@@ -89,10 +91,21 @@ func doQuery(w http.ResponseWriter, r *http.Request) {
     tags = strings.TrimRight(tags, ",")
 
     // output metrics in OpenTelemetry style
-    fmt.Fprintf(w, "%s{%s} %s %s\n", name, tags, metricTime.String(), metricValue.String())
+    fmt.Fprintf(w, "%s{%s} %s\n", name, tags, metricValue.String())
+
+    // Increase objectCounter
+    objectCounter++
 
     return true 
   })
+
+  // Write log line
+  // Format: [time] <thanos status code> <objects in output> "<incoming request data>"
+  fmt.Fprintf(os.Stdout, "[%s] %d %d \"%s\"\n", 
+                            currentTime.Format("2006-1-2 15:04:05 MST"), 
+                            resp.StatusCode,
+                            objectCounter,
+                            r.URL.Query())
 }
 
 func main() {
