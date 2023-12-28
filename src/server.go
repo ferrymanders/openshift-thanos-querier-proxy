@@ -2,6 +2,7 @@ package main
 
 import (
   "fmt"
+  "crypto/tls"
   "github.com/tidwall/gjson"
   "io"
   "log"
@@ -29,6 +30,11 @@ func doQuery(w http.ResponseWriter, r *http.Request) {
   fmt.Println("# New request ############################")
   fmt.Println("GET params were:", r.URL.Query())
   fmt.Println("Headers were:", r.Header)
+
+  // Disable TLS Certificate Verify
+  if os.Getenv("THANOS_QUERIER_INSECURE") == "true" {
+    http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+  }
 
   // Start creating request to Querier
   req, err := http.NewRequest("GET", thanosQuerierUrl, nil)
